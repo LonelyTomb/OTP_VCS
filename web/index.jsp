@@ -15,6 +15,9 @@
 <%@ page import="java.awt.*,java.awt.image.BufferedImage" %>
 
 <%!
+    public static String pathFile = "C:\\Users\\LonelyTomb\\IdeaProjects\\JS_TEST\\";
+%>
+<%!
     public static void createimage(String text, String filename) {
         BufferedImage img = new BufferedImage(400, 80, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = img.createGraphics();
@@ -23,9 +26,9 @@
         FontMetrics fm = g2d.getFontMetrics();
         int width = 400;
         int height = 80;
-        if (text.equals("")) {
-        width = fm.stringWidth(text);
-        height = fm.getHeight();
+        if (!text.equals("")) {
+            width = fm.stringWidth(text);
+            height = fm.getHeight();
         }
         g2d.dispose();
 
@@ -45,7 +48,7 @@
         g2d.drawString(text, 0, fm.getAscent());
         g2d.dispose();
         try {
-            ImageIO.write(img, "jpeg", new File("C:\\Users\\LonelyTomb\\IdeaProjects\\JS_TEST\\" + filename + ".jpeg"));
+            ImageIO.write(img, "jpeg", new File(pathFile + filename + ".jpeg"));
         } catch (IOException ex) {
             ex.printStackTrace();
         }
@@ -53,6 +56,7 @@
 
     }
 %>
+<%!String a = new TOTP().getTOTP();%>
 <%
 
     String[] innocentFiles = new String[2];
@@ -61,13 +65,71 @@
     boolean fileFound;
 
     try {
-        createimage(new TOTP().getTOTP(), "Text");
-        secretImage = ImageIO.read(new File("C:\\Users\\LonelyTomb\\IdeaProjects\\JS_TEST\\Text.jpeg"));
+        createimage(a, "Text");
+        secretImage = ImageIO.read(new File(pathFile + "Text.jpeg"));
 
         fileFound = true;
     } catch (IOException e) {
         out.println("Error:  The file you tried to encrypt does not exist." + e.getMessage());
         fileFound = false;
+    }
+
+    if (fileFound) {
+        //get name of innocent 1
+        //get name of innocent 2
+        for (int i = 0; i < 2; i++) {
+            createimage("", "sh0" + i);
+            innocentFiles[i] = "sh0" + i + ".jpeg";
+        }
+        BufferedImage[] innocentShares = new BufferedImage[2];
+        for (int i = 0; i < 2; i++) {
+            try {
+                innocentShares[i] = ImageIO.read(new File(pathFile+innocentFiles[i]));
+                fileFound = true;
+            } catch (IOException e) {
+                String errorString = "Error:  The file \"" + innocentFiles[i] + "\" does not exist.";
+                fileFound = false;
+            }
+        }
+        //if all files found
+        if (fileFound) {
+            //pass to extendedvcs obj
+            ExtendedVCS myEVCS = new ExtendedVCS(secretImage, innocentShares);
+            //encrypt
+            myEVCS.encryptImage();
+
+            //get rgbs of new innocent files
+            int[][] newInnocentRGB = myEVCS.getRGBPixelsForShares();
+
+            //print to image files
+
+            String folderName = pathFile;
+
+            String[] shareFiles = new String[2];
+            for (int i = 0; i < 2; i++) {
+
+                shareFiles[i] = folderName + "/share" + (i + 1) + ".png";
+
+            }
+
+            for (int i = 0; i < 2; i++) {
+                try {
+                    //Takes the pixel array and creates a new buffered image
+                    BufferedImage tempShare = new BufferedImage(myEVCS.getImgWidth(), myEVCS.getImgHeight(),
+                            BufferedImage.TYPE_INT_ARGB);
+                    tempShare.setRGB(0, 0, myEVCS.getImgWidth(), myEVCS.getImgHeight(),
+                            newInnocentRGB[i], 0, myEVCS.getImgWidth());
+
+                    //Creates the file name of the new image
+                    File tempOutput = new File(shareFiles[i]);
+
+                    //Writes the buffered image to a png file
+                    ImageIO.write(tempShare, "png", tempOutput);
+                } catch (IOException e) {
+                    System.out.println("Error!");
+                }
+            }
+        }
     }
 
 %>
@@ -79,6 +141,7 @@
 <body>
 <form action=""></form>
 <p>YOUr OTP is
+    <%=a%>
 </p>
 </body>
 </html>
