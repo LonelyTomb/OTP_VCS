@@ -1,147 +1,56 @@
 <%--
   Created by IntelliJ IDEA.
   User: LonelyTomb
-  Date: 6/30/2017
-  Time: 12:51 PM
+  Date: 7/3/2017
+  Time: 7:19 AM
   To change this template use File | Settings | File Templates.
 --%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
-<%@ page import="com.jsp.totp.TOTP" %>
-<%@ page import="com.jsp.vcs.ExtendedVCS" %>
-<%@ page import="com.jsp.vcs.PixelVCS" %>
-<%@ page import="java.io.IOException" %>
-<%@ page import="javax.imageio.ImageIO" %>
-<%@ page import="java.io.File" %>
-<%@ page import="java.awt.*,java.awt.image.BufferedImage" %>
-
-<%!
-    public static String pathFile = "C:\\Users\\LonelyTomb\\IdeaProjects\\JS_TEST\\";
-%>
-<%!
-    public static void createimage(String text, String filename) {
-        BufferedImage img = new BufferedImage(400, 80, BufferedImage.TYPE_INT_ARGB);
-        Graphics2D g2d = img.createGraphics();
-        Font font = new Font("Arial", Font.PLAIN, 48);
-        g2d.setFont(font);
-        FontMetrics fm = g2d.getFontMetrics();
-        int width = 400;
-        int height = 80;
-        if (!text.equals("")) {
-            width = fm.stringWidth(text);
-            height = fm.getHeight();
-        }
-        g2d.dispose();
-
-        img = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-        g2d = img.createGraphics();
-        g2d.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g2d.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
-        g2d.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_ENABLE);
-        g2d.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
-        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-        g2d.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
-        g2d.setFont(font);
-        fm = g2d.getFontMetrics();
-        g2d.setColor(Color.WHITE);
-        g2d.drawString(text, 0, fm.getAscent());
-        g2d.dispose();
-        try {
-            ImageIO.write(img, "jpeg", new File(pathFile + filename + ".jpeg"));
-        } catch (IOException ex) {
-            ex.printStackTrace();
-        }
-
-
-    }
-%>
-<%!String a = new TOTP().getTOTP();%>
-<%
-
-    String[] innocentFiles = new String[2];
-
-    BufferedImage secretImage = null;
-    boolean fileFound;
-
-    try {
-        createimage(a, "Text");
-        secretImage = ImageIO.read(new File(pathFile + "Text.jpeg"));
-
-        fileFound = true;
-    } catch (IOException e) {
-        out.println("Error:  The file you tried to encrypt does not exist." + e.getMessage());
-        fileFound = false;
-    }
-
-    if (fileFound) {
-        //get name of innocent 1
-        //get name of innocent 2
-        for (int i = 0; i < 2; i++) {
-            createimage("", "sh0" + i);
-            innocentFiles[i] = "sh0" + i + ".jpeg";
-        }
-        BufferedImage[] innocentShares = new BufferedImage[2];
-        for (int i = 0; i < 2; i++) {
-            try {
-                innocentShares[i] = ImageIO.read(new File(pathFile+innocentFiles[i]));
-                fileFound = true;
-            } catch (IOException e) {
-                String errorString = "Error:  The file \"" + innocentFiles[i] + "\" does not exist.";
-                fileFound = false;
-            }
-        }
-        //if all files found
-        if (fileFound) {
-            //pass to extendedvcs obj
-            ExtendedVCS myEVCS = new ExtendedVCS(secretImage, innocentShares);
-            //encrypt
-            myEVCS.encryptImage();
-
-            //get rgbs of new innocent files
-            int[][] newInnocentRGB = myEVCS.getRGBPixelsForShares();
-
-            //print to image files
-
-            String folderName = pathFile;
-
-            String[] shareFiles = new String[2];
-            for (int i = 0; i < 2; i++) {
-
-                shareFiles[i] = folderName + "/share" + (i + 1) + ".png";
-
-            }
-
-            for (int i = 0; i < 2; i++) {
-                try {
-                    //Takes the pixel array and creates a new buffered image
-                    BufferedImage tempShare = new BufferedImage(myEVCS.getImgWidth(), myEVCS.getImgHeight(),
-                            BufferedImage.TYPE_INT_ARGB);
-                    tempShare.setRGB(0, 0, myEVCS.getImgWidth(), myEVCS.getImgHeight(),
-                            newInnocentRGB[i], 0, myEVCS.getImgWidth());
-
-                    //Creates the file name of the new image
-                    File tempOutput = new File(shareFiles[i]);
-
-                    //Writes the buffered image to a png file
-                    ImageIO.write(tempShare, "png", tempOutput);
-                } catch (IOException e) {
-                    System.out.println("Error!");
-                }
-            }
-        }
-    }
-
-%>
-
+<%@ page session="true" language="java" %>
 <html>
 <head>
-    <title>$Title$</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.99.0/css/materialize.min.css">
+    <script type="text/javascript" src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.99.0/js/materialize.min.js"></script>
+    <title>Title</title>
 </head>
 <body>
-<form action=""></form>
-<p>YOUr OTP is
-    <%=a%>
-</p>
+<nav>
+    <div class="nav-wrapper">
+        <a href="#" class="brand-logo center">A SECURE OTP SYSTEM USING VISUAL ENCRYPTION</a>
+
+    </div>
+</nav>
+<main>
+
+<div class="container">
+    <div class="card">
+        <div class="card-title">
+            <h2>Log In</h2>
+        </div>
+        <div class="card-content">
+            <form action="generateOTP.jsp" method="post">
+                <div class="row">
+                    <div class="input-field">
+                        <input autocomplete="off" id="username" type="text" class="validate" name="username">
+                        <label for="username">UserName</label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="input-field">
+                        <input autocomplete="off" id="password" type="password" class="validate">
+                        <label for="password">Password</label>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="input-field">
+                        <button type="submit" class="btn waves-ripple red">Generate OTP</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+</main>
 </body>
 </html>
