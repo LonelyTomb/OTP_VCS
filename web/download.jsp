@@ -7,9 +7,9 @@
 
 <%
 out.clear();
-	HttpSession sessions = request.getSession();
+
 	// you  can get your base and parent from the database
-	String filename = sessions.getAttribute("downloadFile").toString();
+	String filename = session.getAttribute("downloadFile").toString();
 // you can  write http://localhost
 	String base="e1";
 
